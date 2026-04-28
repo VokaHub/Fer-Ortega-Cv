@@ -39,10 +39,13 @@ export default function App() {
       for (let i = 0; i < sections.length; i++) {
         const section = sections[i] as HTMLElement;
         
+        // Skip hidden sections or very small ones
+        if (section.offsetHeight < 50) continue;
+
         // Capture each section as a canvas
         const canvas = await html2canvas(section, {
           backgroundColor: "#000000",
-          scale: 2, // High quality
+          scale: 3, // Even higher quality for text clarity
           logging: false,
           useCORS: true,
           width: 1920,
@@ -50,12 +53,9 @@ export default function App() {
           windowWidth: 1920,
           windowHeight: 1080,
           ignoreElements: (element) => {
-            // Ignore background blobs and the download button itself
             return element.classList.contains('bg-blob') || element.tagName === 'BUTTON';
           },
           onclone: (clonedDoc) => {
-            // Fix for html2canvas oklab/oklch parsing error
-            // We remove modern color functions that html2canvas doesn't support
             try {
               const styleSheets = Array.from(clonedDoc.styleSheets);
               styleSheets.forEach(sheet => {
@@ -66,11 +66,7 @@ export default function App() {
                       if (rule instanceof CSSStyleRule) {
                         const cssText = rule.cssText;
                         if (cssText.includes('oklab') || cssText.includes('oklch') || cssText.includes('color-mix')) {
-                          if (parent instanceof CSSStyleSheet) {
-                            parent.deleteRule(idx);
-                          } else {
-                            parent.deleteRule(idx);
-                          }
+                          parent.deleteRule(idx);
                         }
                       } else if (rule instanceof CSSGroupingRule) {
                         cleanRules(rule.cssRules, rule);
@@ -78,61 +74,67 @@ export default function App() {
                     }
                   };
                   cleanRules(sheet.cssRules, sheet);
-                } catch (e) {
-                  // Ignore cross-origin stylesheet errors
-                }
+                } catch (e) {}
               });
-            } catch (e) {
-              console.warn("Could not clean up stylesheets for PDF", e);
-            }
+            } catch (e) {}
 
-            // Force simple styles for PDF compatibility
-            const clonedSection = clonedDoc.querySelector(`section:nth-of-type(${i + 1})`) as HTMLElement;
+            // Find matching section in clone
+            const allClonedSections = Array.from(clonedDoc.querySelectorAll('section'));
+            const clonedSection = allClonedSections[i] as HTMLElement;
+
             if (clonedSection) {
-              // Ensure the body doesn't constrain the section
               clonedDoc.body.style.width = "1920px";
               clonedDoc.body.style.height = "1080px";
               clonedDoc.body.style.margin = "0";
               clonedDoc.body.style.padding = "0";
               clonedDoc.body.style.backgroundColor = "#000000";
 
-              // CRITICAL: Force all motion elements to be visible
-              // Motion components often start at opacity 0 and wait for scroll
+              // Hide everything EXCEPT the targeted section
+              clonedDoc.body.innerHTML = '';
+              clonedDoc.body.appendChild(clonedSection);
+
               const allElements = clonedSection.querySelectorAll('*');
               allElements.forEach(el => {
                 const element = el as HTMLElement;
                 
-                // Reset any motion-related hidden states
+                // Reset motion & Hidden states
                 element.style.opacity = "1";
                 element.style.visibility = "visible";
                 element.style.transform = "none";
                 element.style.transition = "none";
                 element.style.animation = "none";
 
-                const style = window.getComputedStyle(element);
-                
-                // If the computed color contains oklab/oklch, force it to something safe
-                if (style.color.includes('oklab') || style.color.includes('oklch')) {
+                // Boost Font weight and size for PDF clarity
+                const computedStyle = window.getComputedStyle(element);
+                const currentFontSize = parseFloat(computedStyle.fontSize);
+                if (currentFontSize > 0) {
+                  element.style.fontSize = (currentFontSize * 1.6) + "px";
+                }
+
+                // Fix for capsules/pills being cut off or uncentered
+                if (element.classList.contains('pill') || element.dataset.pill === 'true') {
+                  element.style.whiteSpace = "nowrap";
+                  element.style.display = "inline-flex";
+                  element.style.alignItems = "center";
+                  element.style.justifyContent = "center";
+                }
+
+                // Color fixes
+                if (computedStyle.color.includes('oklab') || computedStyle.color.includes('oklch')) {
                   element.style.color = '#ffffff';
                 }
-                if (style.backgroundColor.includes('oklab') || style.backgroundColor.includes('oklch')) {
+                if (computedStyle.backgroundColor.includes('oklab') || computedStyle.backgroundColor.includes('oklch')) {
                   element.style.backgroundColor = 'transparent';
                 }
-                if (style.borderColor.includes('oklab') || style.borderColor.includes('oklch')) {
+                if (computedStyle.borderColor.includes('oklab') || computedStyle.borderColor.includes('oklch')) {
                   element.style.borderColor = 'rgba(255,255,255,0.1)';
                 }
               });
 
-              // Hide other sections to prevent overflow/interference
-              const otherSections = clonedDoc.querySelectorAll('section');
-              otherSections.forEach(s => {
-                if (s !== clonedSection) (s as HTMLElement).style.display = 'none';
-              });
-
               clonedSection.style.display = "flex";
               clonedSection.style.width = "1920px";
-              clonedSection.style.height = "1080px";
-              clonedSection.style.padding = "100px 180px";
+              clonedSection.style.minHeight = "1080px";
+              clonedSection.style.padding = "100px 200px";
               clonedSection.style.boxSizing = "border-box";
               clonedSection.style.flexDirection = "column";
               clonedSection.style.justifyContent = "center";
@@ -143,21 +145,20 @@ export default function App() {
               clonedSection.style.left = "0";
               clonedSection.style.overflow = "hidden";
               
-              // Remove filters/blurs that crash html2canvas
+              // Simplify glass cards for capture
               const glassCards = clonedSection.querySelectorAll('.glass-card');
               glassCards.forEach(card => {
                 (card as HTMLElement).style.backdropFilter = "none";
-                (card as HTMLElement).style.background = "rgba(255,255,255,0.05)";
+                (card as HTMLElement).style.background = "rgba(255,255,255,0.08)";
               });
             }
           }
         });
 
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const imgData = canvas.toDataURL("image/jpeg", 1.0);
         
         if (i > 0) pdf.addPage([1920, 1080], "landscape");
         
-        // Fit image to page exactly
         pdf.addImage(imgData, "JPEG", 0, 0, 1920, 1080);
       }
 
@@ -317,9 +318,9 @@ export default function App() {
                   <h3 className="text-[10px] uppercase tracking-[0.2em] text-accent font-bold mb-4">Marcas Manejadas</h3>
                   <p className="text-text-muted text-sm italic leading-relaxed">Gestión integral y estratégica para marcas de alto perfil.</p>
                 </div>
-                <div className="md:col-span-2 flex flex-wrap gap-2">
+                <div className="md:col-span-2 flex flex-wrap gap-3">
                   {["Don Mario´s", "Top Dot", "Masa Madre", "Net", "Educare", "Antiguas Gym", "El Plaza"].map((brand) => (
-                    <span key={brand} className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-light hover:border-accent/40 transition-colors">
+                    <span key={brand} data-pill="true" className="inline-flex items-center justify-center px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-[13px] font-light leading-none hover:border-accent/40 transition-colors">
                       {brand}
                     </span>
                   ))}
@@ -350,9 +351,9 @@ export default function App() {
 
             <motion.div {...fadeIn} className="flex flex-col">
               <h2 className="text-accent uppercase tracking-[0.3em] text-[10px] font-bold mb-12">Marcas & Clientes</h2>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-4">
                 {["Hyundai", "Novex", "Cemaco", "Clínica de Servicio", "Orbe Café", "Marea Café", "Petrópolis Veterinaria", "Perruqueria", "Resiliencia", "Don Mario´s", "Top Dot", "Masa Madre", "Net", "Educare", "Antiguas Gym", "El Plaza"].map((brand) => (
-                  <span key={brand} className="px-6 py-3 bg-white/5 border border-white/10 rounded-full text-sm font-light hover:border-accent/40 transition-colors">
+                  <span key={brand} data-pill="true" className="inline-flex items-center justify-center px-6 py-3.5 bg-white/5 border border-white/10 rounded-full text-[15px] font-light leading-none hover:border-accent/40 transition-colors">
                     {brand}
                   </span>
                 ))}
