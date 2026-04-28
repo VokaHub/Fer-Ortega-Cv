@@ -232,7 +232,7 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Instagram size={16} className="text-accent" />
-                  <span className="hover:text-white transition-colors cursor-pointer">oneday.hub</span>
+                  <span className="hover:text-white transition-colors cursor-pointer">oneday.gt</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <MapPin size={16} className="text-accent" />
@@ -273,7 +273,8 @@ export default function App() {
               description={[
                 "Planificación estratégica de contenido y branding.",
                 "Organización de equipos y recursos para ejecución.",
-                "Supervisión de contenido, diseño y comunicación digital."
+                "Supervisión de contenido, diseño y comunicación digital.",
+                "Creación de contenido estático/en movimiento."
               ]}
             />
             <ExperienceItem 
@@ -285,7 +286,8 @@ export default function App() {
                 "Ejecución de calendarios y revisión de copies.",
                 "Guionización de videos.",
                 "Dirección creativa.",
-                "Supervisión de producción."
+                "Supervisión de producción.",
+                "Creación de contenido estático/en movimiento."
               ]}
             />
             <ExperienceItem 
@@ -295,7 +297,8 @@ export default function App() {
               description={[
                 "Coordinación de agenda y profesionales.",
                 "Organización interna y comunicación.",
-                "Apoyo en posicionamiento digital."
+                "Apoyo en posicionamiento digital.",
+                "Creación de contenido estático/en movimiento."
               ]}
             />
             
@@ -319,7 +322,7 @@ export default function App() {
                   <p className="text-text-muted text-sm italic leading-relaxed">Gestión integral y estratégica para marcas de alto perfil.</p>
                 </div>
                 <div className="md:col-span-2 flex flex-wrap gap-3">
-                  {["Don Mario´s", "Top Dot", "Masa Madre", "Net", "Educare", "Antiguas Gym", "El Plaza"].map((brand) => (
+                  {["Don Mario´s", "Top Dot", "Masa Madre", "Net", "Educare", "Antiguas Gym", "El Plaza", "OneDay", "Hyundai Power"].map((brand) => (
                     <span key={brand} data-pill="true" className="inline-flex items-center justify-center px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-[13px] font-light leading-none hover:border-accent/40 transition-colors">
                       {brand}
                     </span>
@@ -352,7 +355,7 @@ export default function App() {
             <motion.div {...fadeIn} className="flex flex-col">
               <h2 className="text-accent uppercase tracking-[0.3em] text-[10px] font-bold mb-12">Marcas & Clientes</h2>
               <div className="flex flex-wrap gap-4">
-                {["Hyundai", "Novex", "Cemaco", "Clínica de Servicio", "Orbe Café", "Marea Café", "Petrópolis Veterinaria", "Perruqueria", "Resiliencia", "Don Mario´s", "Top Dot", "Masa Madre", "Net", "Educare", "Antiguas Gym", "El Plaza"].map((brand) => (
+                {["Hyundai Power", "Novex", "Cemaco", "Clínica de Servicio", "Orbe Café", "Marea Café", "Petrópolis Veterinaria", "Perruqueria", "Resiliencia", "OneDay", "Don Mario´s", "Top Dot", "Masa Madre", "Net", "Educare", "Antiguas Gym", "El Plaza"].map((brand) => (
                   <span key={brand} data-pill="true" className="inline-flex items-center justify-center px-6 py-3.5 bg-white/5 border border-white/10 rounded-full text-[15px] font-light leading-none hover:border-accent/40 transition-colors">
                     {brand}
                   </span>
@@ -443,7 +446,7 @@ export default function App() {
           <div className="flex flex-col gap-1 text-right md:items-end">
             <span className="text-white/40 text-[10px] uppercase tracking-widest mb-2">Contacto Directo</span>
             <span className="text-xl font-light">info@vokahub.com</span>
-            <span className="text-accent text-sm font-light mt-2">@oneday.hub</span>
+            <span className="text-accent text-sm font-light mt-2">@oneday.gt</span>
             <span className="text-text-muted text-sm font-light mt-4">© 2026 • Guatemala</span>
           </div>
         </footer>
